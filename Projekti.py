@@ -7,7 +7,7 @@ yhteys = mysql.connector.connect(
     port=3306,
     database='demogame',
     user='root',
-    password='N1XXSERVER',
+    password='salasana',
     autocommit=True
 )
 
@@ -16,7 +16,7 @@ player_data = {
     'name': "",
     'raha': 500,
     'xp': 0,
-    'omistetut_koneet': 0,
+    'omistetut_koneet': 1,
     'suoritetut_keikat': 0,
     'omistettu_bensa': 0,
     'nykyinen_kone': None
@@ -133,7 +133,16 @@ def aloita_peli():
             print("Valitse 1, 2 tai 3.")
 
 def peli_tarina():
-    print("Olet herännyt koomasta. Huomaat ettet ole omalla planeetallasi. Aloitat vanhalla lentokoneella")
+    print("Heräät... et ole varma mistä...?")
+    print("Paikka näyttää täysin tuntemaltasi Suomen maalta, mutta kaikista on muuttunut alieneita.")
+    print("...")
+    print("Toivot, että tämä olisi vain pahaa unta...")
+    print("...")
+    print("Mutta sitten näet KELAN!! Voisiko tämä olla ratkaisu kaikkeen?!?!")
+    print("Kela lahjoittaa sinulle rikkinäisen aloitus lentokoneen, jolla voit aloittaa rahdin kuljetus firman.")
+    print("Mitään muutakaan et voi, joten päätät ryhtyä tämän planeetan parhaaksi cargon välittäjäksi!")
+    print("Jotta jonain päivänä, voit palata omalle koti-planeetallesi, koti SUOMEEEN...")
+    print("...")
     pelin_paa_valikko()
 
 def hae_aloitus_koorinaatit():
@@ -179,10 +188,11 @@ def pelin_paa_valikko():
         else:
             print("Valitse validi vaihtoehto.")
 
-
+# kauppa josta pelaaja voi ostaa koneita sekä bensaa
 def kauppa():
     while True:
         print("\n*** Tervetuloa Kauppaan! ***")
+        print("------------------------------")
         print("[1] Osta Bensakanisteri (50€)")
         print("[2] Osta Pienenmatkan Lentokone (500 €)")
         print("[3] Osta Keskipitkänmatkan Lentokone (1000 €)")
@@ -196,36 +206,42 @@ def kauppa():
             pelin_paa_valikko()
 
         elif valinta == "1":
-            if player_data['omistetut_koneet'] > 1:
+            # Näytetään vain omistetut koneet
+            if player_data['omistetut_koneet'] > 0:
                 print("\nValitse lentokone johon bensaa lisätään:")
-                for idx, kone in enumerate(Lentokone):
+                # Suodatetaan vain omistetut koneet
+                omistetut_koneet = Lentokone[:player_data['omistetut_koneet']]
+                for idx, kone in enumerate(omistetut_koneet):
                     print(
                         f"[{idx + 1}] {kone['nimi']} - Nykyinen bensa: {kone['nykyinen_bensa']}/{kone['maksimi_bensa']}")
+
                 kone_valinta = int(input("Valitse lentokone (numero): ")) - 1
-                valittu_kone = Lentokone[kone_valinta]
-            else:
-                valittu_kone = Lentokone[0]
-            if player_data['raha'] >= 50:
-                if valittu_kone['nykyinen_bensa'] < valittu_kone['maksimi_bensa']:
-                    player_data['raha'] -= 50
-                    valittu_kone['nykyinen_bensa'] += 1
-                    if valittu_kone['nykyinen_bensa'] > valittu_kone['maksimi_bensa']:
-                        valittu_kone['nykyinen_bensa'] = valittu_kone['maksimi_bensa']
-                    print(
-                        f"Ostit 1 bensakanisterin! {valittu_kone['nimi']} nykyinen bensa: {valittu_kone['nykyinen_bensa']}/{valittu_kone['maksimi_bensa']}.")
+                valittu_kone = omistetut_koneet[kone_valinta]
+
+                # Tarkistetaan raha ja lisätään bensa
+                if player_data['raha'] >= 50:
+                    if valittu_kone['nykyinen_bensa'] < valittu_kone['maksimi_bensa']:
+                        player_data['raha'] -= 50
+                        valittu_kone['nykyinen_bensa'] += 1
+                        if valittu_kone['nykyinen_bensa'] > valittu_kone['maksimi_bensa']:
+                            valittu_kone['nykyinen_bensa'] = valittu_kone['maksimi_bensa']
+                        print(
+                            f"Ostit 1 bensakanisterin! {valittu_kone['nimi']} nykyinen bensa: {valittu_kone['nykyinen_bensa']}/{valittu_kone['maksimi_bensa']}.")
+                    else:
+                        print(
+                            f"{valittu_kone['nimi']} bensa on jo täysi ({valittu_kone['maksimi_bensa']}/{valittu_kone['maksimi_bensa']}).")
                 else:
-                    print(
-                        f"{valittu_kone['nimi']} bensa on jo täysi ({valittu_kone['maksimi_bensa']}/{valittu_kone['maksimi_bensa']}).")
+                    print("Sinulla ei ole tarpeeksi rahaa ostaaksesi bensakanisteria.")
             else:
-                print("Sinulla ei ole tarpeeksi rahaa ostaaksesi bensakanisteria.")
+                print("Sinulla ei ole yhtään omistettua lentokonetta.")
 
         elif valinta == "2":
             if player_data['raha'] >= 500:
                 player_data['raha'] -= 500
                 player_data['omistetut_koneet'] += 1
                 Lentokone[0]['nykyinen_bensa'] = Lentokone[0]['maksimi_bensa']
-                print(f"Ostit {Lentokone[0]['nimi']}! Nykyinen bensa: {Lentokone[0]['nykyinen_bensa']}/{Lentokone[0]['maksimi_bensa']}.")
-
+                print(
+                    f"Ostit {Lentokone[0]['nimi']}! Nykyinen bensa: {Lentokone[0]['nykyinen_bensa']}/{Lentokone[0]['maksimi_bensa']}.")
             else:
                 print("Sinulla ei ole tarpeeksi rahaa ostaaksesi lentokonetta.")
 
@@ -234,8 +250,8 @@ def kauppa():
                 player_data['raha'] -= 1000
                 player_data['omistetut_koneet'] += 1
                 Lentokone[1]['nykyinen_bensa'] = Lentokone[1]['maksimi_bensa']
-                print(f"Ostit {Lentokone[1]['nimi']}! Nykyinen bensa: {Lentokone[1]['nykyinen_bensa']}/{Lentokone[1]['maksimi_bensa']}.")
-
+                print(
+                    f"Ostit {Lentokone[1]['nimi']}! Nykyinen bensa: {Lentokone[1]['nykyinen_bensa']}/{Lentokone[1]['maksimi_bensa']}.")
             else:
                 print("Sinulla ei ole tarpeeksi rahaa ostaaksesi lentokonetta.")
 
@@ -244,8 +260,8 @@ def kauppa():
                 player_data['raha'] -= 1500
                 player_data['omistetut_koneet'] += 1
                 Lentokone[2]['nykyinen_bensa'] = Lentokone[2]['maksimi_bensa']
-                print(f"Ostit {Lentokone[2]['nimi']}! Nykyinen bensa: {Lentokone[2]['nykyinen_bensa']}/{Lentokone[2]['maksimi_bensa']}.")
-
+                print(
+                    f"Ostit {Lentokone[2]['nimi']}! Nykyinen bensa: {Lentokone[2]['nykyinen_bensa']}/{Lentokone[2]['maksimi_bensa']}.")
             else:
                 print("Sinulla ei ole tarpeeksi rahaa ostaaksesi lentokonetta.")
 
@@ -263,25 +279,37 @@ def kauppa():
         else:
             print("Valitse numero 1, 2, 3, 4, 6 TAI 0")
 
+# keikat pelaajalle
 def keikat():
     global player_data
 
+    # jos pelaajalla ei ole konetta
+    if player_data['omistetut_koneet'] == 0:
+        print("\nEt omista yhtään lentokonetta. Käy ensin ostamassa lentokone kaupasta.")
+        return
+
+    # pelaaja valitsee omistaman koneen
     if player_data['omistetut_koneet'] > 1:
         print("\nValitse lentokone keikkaa varten:")
         for idx, kone in enumerate(Lentokone):
-            print(f"[{idx + 1}] {kone['nimi']} - Nykyinen bensa: {kone['nykyinen_bensa']}/{kone['maksimi_bensa']}")
+            if player_data['omistetut_koneet'] > idx:  # Tarkistetaan, omistaako pelaaja kyseisen koneen
+                print(f"[{idx + 1}] {kone['nimi']} - Nykyinen bensa: {kone['nykyinen_bensa']}/{kone['maksimi_bensa']}")
         kone_valinta = int(input("Valitse lentokone (numero): ")) - 1
+
+        if kone_valinta >= player_data['omistetut_koneet']:
+            print("Et omista valitsemaasi lentokonetta.")
+            return
+
         player_data['nykyinen_kone'] = kone_valinta
         valittu_kone = Lentokone[kone_valinta]
     else:
         valittu_kone = Lentokone[0]
         player_data['nykyinen_kone'] = 0
-        #MIKSI EI TOIMI GEOPY SAAT... Latitude normalization has been prohibited in the newer versions of geopy, because the normalized value happened to be on a different pole, which is probably not what was meant. If you pass coordinates as positional args, please make sure that the order is (latitude, longitude) or (y, x) in Cartesian terms.
-    #suomi_viro_vali, suomi_turku_vali, suomi_latvia_vali, suomi_saksa_vali, suomi_britannia_vali, suomi_espanja_vali, suomi_japani_vali, suomi_amerikka_vali
-    missions = [
-        ("Viron keikka",1, 200, 150, 2),
-        ("Turun keikka",1, 150, 100, 1),
 
+    # määritellään keikat
+    missions = [
+        ("Viron keikka", 1, 200, 150, 2),
+        ("Turun keikka", 1, 150, 100, 1),
     ]
     mission1 = [
         ("Latvian keikka", 1, 400, 200, 3),
@@ -291,46 +319,48 @@ def keikat():
     mission2 = [
         ("Espanjan keikka", 1, 750, 750, 4),
         ("Japanin keikka", 1, 600, 1000, 5),
-        ("Amerikkan keikka", 1, 1000, 100, 6)
+        ("Amerikan keikka", 1, 1000, 100, 6),
     ]
+
+    # pelaajan keikat
     while True:
         print("\n*** Valitse Keikka ***")
 
         print("\n-- Alkutason keikat (0-500 XP) --")
         for index, mission in enumerate(missions):
             if player_data['xp'] >= 0:
-                print(
-                    f"[{index + 1}] {mission[0]} (Palkka: {mission[2]}€, Kokemuspisteet: {mission[3]} XP, Bensankulutus: {mission[4]} kanisteria)")
+                print(f"[{index + 1}] {mission[0]} (Palkka: {mission[2]}€, Kokemuspisteet: {mission[3]} XP, Bensankulutus: {mission[4]} kanisteria)")
 
         if player_data['xp'] >= 500:
             print("\n-- Keskitaso (500+ XP) --")
             for index, mission in enumerate(mission1):
-                print(
-                    f"[{index + 1 + len(missions)}] {mission[0]} (Palkka: {mission[2]}€, Kokemuspisteet: {mission[3]} XP, Bensankulutus: {mission[4]} kanisteria)")
+                print(f"[{index + 1 + len(missions)}] {mission[0]} (Palkka: {mission[2]}€, Kokemuspisteet: {mission[3]} XP, Bensankulutus: {mission[4]} kanisteria)")
 
         if player_data['xp'] >= 2000:
             print("\n-- Edistynyt taso (2000+ XP) --")
             for index, mission in enumerate(mission2):
-                print(
-                    f"[{index + 1 + len(missions) + len(mission1)}] {mission[0]} (Palkka: {mission[2]}€, Kokemuspisteet: {mission[3]} XP, Bensankulutus: {mission[4]} kanisteria)")
+                print(f"[{index + 1 + len(missions) + len(mission1)}] {mission[0]} (Palkka: {mission[2]}€, Kokemuspisteet: {mission[3]} XP, Bensankulutus: {mission[4]} kanisteria)")
 
         print("[0] Takaisin päävalikkoon")
         valinta = input("Valitse keikka (numero) tai 0: ")
+
         if valinta == "0":
             pelin_paa_valikko()
+            return
+
         try:
             index = int(valinta) - 1
+
             if index < len(missions):
                 keikka_nimi, distance, palkka, xp, bensa = missions[index]
-            elif index < len(missions) + len(mission1) and player_data['xp'] >= 200:
+            elif index < len(missions) + len(mission1) and player_data['xp'] >= 500:
                 keikka_nimi, distance, palkka, xp, bensa = mission1[index - len(missions)]
-            elif index < len(missions) + len(mission1) + len(mission2) and player_data[
-                'xp'] >= 500:
+            elif index < len(missions) + len(mission1) + len(mission2) and player_data['xp'] >= 2000:
                 keikka_nimi, distance, palkka, xp, bensa = mission2[index - len(missions) - len(mission1)]
             else:
                 print("Virheellinen valinta tai kokemuspisteet eivät riitä keikkaan!")
                 continue
-
+                # tarkistetaan onko bensaa
             if valittu_kone['nykyinen_bensa'] >= bensa:
                 valittu_kone['nykyinen_bensa'] -= bensa
                 player_data['raha'] += palkka
@@ -338,17 +368,15 @@ def keikat():
                 player_data['suoritetut_keikat'] += 1
                 print(f"Keikka '{keikka_nimi}' suoritettu!")
                 print(f"Ansaitsit {palkka}€, ja saat {xp} XP!")
-                print(f"Matkan pituus oli: PLACEHOLDER")
-                print(
-                    f"Sinulla on nyt {player_data['raha']}€ ja {valittu_kone['nykyinen_bensa']}/{valittu_kone['maksimi_bensa']} kanisteria bensiiniä jäljellä.")
+                print(f"Sinulla on nyt {player_data['raha']}€ ja {valittu_kone['nykyinen_bensa']}/{valittu_kone['maksimi_bensa']} kanisteria bensiiniä jäljellä.")
                 paivitus()
             else:
                 print(f"Sinulla ei ole tarpeeksi bensaa {valittu_kone['nimi']} keikkaan!")
 
-
         except ValueError:
             print("Onko näössä ongelmia.")
 
+# näytetään pelaajalle tiedot
 def status():
     print("***Pelaajan Status***")
     print(f"Nimi: {player_data['name']}")
@@ -361,7 +389,7 @@ def status():
         print(f"Nykyinen kone: {kone['nimi']}")
         print(f"Bensaa jäljellä: {kone['nykyinen_bensa']}/{kone['maksimi_bensa']}")
     else:
-        print("Nykyistä konetta ei ole valittuna.")
+        print("Sinulla on vain rikkinäinen lahjoitettu lentokone...")
 
 
 aloita_peli()
